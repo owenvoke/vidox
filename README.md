@@ -1,7 +1,7 @@
 # vidox
 A simple video hosting script using only 1 file.
 
-## Example
+## Examples
 
 Example Name | Example URL
 ------------ | --------------
