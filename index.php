@@ -146,7 +146,7 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
                 }
                 $stmt->bind_result($id, $hash, $type, $added, $is_deleted);
                 while ($stmt !== null && $stmt->fetch()) {
-                    if ($id !== null && file_exists('./files\/' . $hash . '.' . $type)) {
+                    if ($id !== null && file_exists('./files/' . $hash . '.' . $type)) {
                         ?>
                         <video controls>
                             <source src="/files/<?= $hash . '.' . $type ?>" type="video/<?= $type ?>">
