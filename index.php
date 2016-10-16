@@ -20,6 +20,7 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Vidox</title>
+	<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
         <link rel="stylesheet" href="https://bootswatch.com/cyborg/bootstrap.min.css"
               integrity="sha384-MnR/tAdMR2vYfROXmBldczUJ7JqlT7aXOo8b86EdVzdnYU0sJ+0fdXdwmFA5qosE"
               crossorigin="anonymous">
