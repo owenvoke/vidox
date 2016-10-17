@@ -146,8 +146,10 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
                     echo 'Execute failed: (' . $stmt->errno . ') ' . $stmt->error;
                 }
                 $stmt->bind_result($id, $hash, $type, $added, $is_deleted);
-                while ($stmt !== null && $stmt->fetch()) {
+                $video_not_found = true;
+                while ($stmt !== null && $stmt->fetch() && $video_not_found) {
                     if ($id !== null && file_exists('./files/' . $hash . '.' . $type)) {
+			$video_not_found = false;
                         ?>
                         <video controls>
                             <source src="/files/<?= $hash . '.' . $type ?>" type="video/<?= $type ?>">
@@ -155,15 +157,16 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
                         </video>
                         <?php
 
-                    }
-                    exit();
-                }
+		     }
+		}
+		if ($video_not_found) {
                 ?>
-                <div class="text-center">
-                    <h1>404</h1>
-                    <h2>This video's ID could not be found.</h2>
-                </div>
+                    <div class="text-center">
+                        <h1>404</h1>
+                        <h2>This video's ID could not be found.</h2>
+                    </div>
                 <?php
+		}	
             } else {
                 ?>
                 <div class="container well">
