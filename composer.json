@@ -1,0 +1,7 @@
+{
+  "name": "pxgamer/vidox",
+  "description": "A simple video hosting script using only 1 file.",
+  "minimum-stability": "stable",
+  "type": "project",
+  "license": "MIT"
+}

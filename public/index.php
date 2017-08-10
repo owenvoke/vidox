@@ -1,17 +1,20 @@
 <?php
-$dbDetails = (object)[
-    'host' => 'localhost',
-    'user' => 'root',
-    'pass' => '',
-    'name' => 'vidox',
+$config = [
+    'storage_directory' => __DIR__ . '/files/',
+    'max_size' => 5000000,
+    'db_dsn' => 'mysql:host=localhost;dbname=vidox',
+    'db_user' => 'root',
+    'db_pass' => 'root'
 ];
 
-$db = new mysqli($dbDetails->host, $dbDetails->user, $dbDetails->pass, $dbDetails->name);
-if ($db->connect_error) {
-    die('Connect Error (' . $db->connect_errno . ') '
-        . $db->connect_error);
+try {
+    $db = new \PDO($config['db_dsn'], $config['db_user'], $config['db_pass']);
+} catch (PDOException $e) {
+    die('Connect Error (' . $e->getCode() . ') '
+        . $e->getMessage());
 }
-$mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
+
+$mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,18 +23,12 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vidox</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="stylesheet" href="https://bootswatch.com/cyborg/bootstrap.min.css"
-          integrity="sha384-MnR/tAdMR2vYfROXmBldczUJ7JqlT7aXOo8b86EdVzdnYU0sJ+0fdXdwmFA5qosE"
-          crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
-            integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://bootswatch.com/cyborg/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style type="text/css">
         .big-search {
-            padding-bottom: 0px;
+            padding-bottom: 0;
             border: transparent;
             border-bottom: 1px solid #008F0D;
             background: transparent;
@@ -76,7 +73,7 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
 
         <div class="collapse navbar-collapse" id="main-nav-collapse">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="/upload/"><span class="glyphicon glyphicon-upload"></span> Upload</a></li>
+                <li><a href="/upload"><span class="glyphicon glyphicon-upload"></span> Upload</a></li>
             </ul>
         </div>
     </div>
@@ -87,42 +84,47 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
         if ($mode_id == 'upload') {
             if (isset($_FILES['upload'])) {
                 $new_id = uniqid();
-                $target_dir = 'files/';
-                $target_file = $target_dir . $new_id;
-                $tFile = $target_dir . basename($_FILES['upload']['name']);
+                $target_file = $config['storage_directory'] . $new_id;
+                $tFile = $config['storage_directory'] . basename($_FILES['upload']['name']);
                 $fType = pathinfo($tFile, PATHINFO_EXTENSION);
                 $target_file = $target_file . '.' . $fType;
+
+                // Check file exists
                 if (file_exists($target_file)) {
-                    echo 'Sorry, file already exists. ';
-                    exit();
+                    die('Sorry, file already exists.');
                 }
-                if ($_FILES['upload']['size'] > 500000) {
-                    echo 'Sorry, your file is too large. ';
-                    exit();
+
+                // Check size is less than specified size
+                if ($_FILES['upload']['size'] > $config['max_size']) {
+                    die('Sorry, your file is too large.');
                 }
-                if ($fType != 'mp4' || $fType != 'mkv') {
-                    echo 'Sorry, only MP4 and MKV files are allowed. ';
-                    exit();
+
+                if ($fType != 'mp4' && $fType != 'mkv') {
+                    die('Sorry, only MP4 and MKV files are allowed.');
                 }
                 if (move_uploaded_file($_FILES['upload']['tmp_name'], $target_file)) {
-                    if (!($stmt = $db->prepare('INSERT INTO `videos` (`hash`, `type`, `added`) VALUES (?, ?, ?)'))) {
-                        echo 'Prepare failed: (' . $db->errno . ') ' . $db->error;
+                    if (!($stmt = $db->prepare('INSERT INTO `videos` (`hash`, `type`, `added`) VALUES (:hash, :type, :added)'))) {
+                        echo 'Prepare failed: (' . $db->errorCode() . ') ' . $db->error;
                     }
-                    if (!$stmt->bind_param('sss', $new_id, $fType, date('Y-m-d H:i:s'))) {
-                        echo 'Binding parameters failed: (' . $stmt->errno . ') ' . $stmt->error;
+
+                    $dateNow = date('Y-m-d H:i:s');
+
+                    $stmt->bindParam(':hash', $new_id, \PDO::PARAM_STR);
+                    $stmt->bindParam(':type', $fType, \PDO::PARAM_STR);
+                    $stmt->bindParam(':added', $dateNow, \PDO::PARAM_STR);
+
+                    if ($stmt->execute()) {
+                        die('<span>Successfully uploaded video with ID `<a href="/' . $new_id . '">' . $new_id . '</a>`');
                     }
-                    if (!$stmt->execute()) {
-                        echo 'Execute failed: (' . $stmt->errno . ') ' . $stmt->error;
-                    }
-                } else {
-                    echo 'Sorry, there was an error uploading your file. ';
                 }
+
+                die('Sorry, there was an error uploading your file.');
             } else {
                 ?>
                 <form action="" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="uploadInput" class="uploadCover btn btn-default">
-                            <input class="uploadinput" type="file" style=" height: 0px; width: 0px;" name="upload"
+                            <input class="uploadinput" type="file" style=" height: 0; width: 0;" name="upload"
                                    id="uploadInput">
                             <span><span class="glyphicon glyphicon-upload"></span> Select Video</span>
                         </label>
@@ -132,38 +134,31 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
                     </div>
                 </form>
                 <?php
-
             }
-            ?>
-            <?php
-
         } elseif ($mode_id !== '') {
             ?>
             <?php
-            if (!($stmt = $db->prepare('SELECT * FROM `videos` WHERE `hash`=?'))) {
-                echo 'Prepare failed: (' . $db->errno . ') ' . $db->error;
+            if (!($stmt = $db->prepare('SELECT * FROM `videos` WHERE `hash` = :hash'))) {
+                echo 'Prepare failed: (' . $db->errorCode() . ') ' . $db->error;
             }
-            if (!$stmt->bind_param('s', $mode_id)) {
-                echo 'Binding parameters failed: (' . $stmt->errno . ') ' . $stmt->error;
+            if (!$stmt->bindParam(':hash', $mode_id, \PDO::PARAM_STR)) {
+                echo 'Binding parameters failed: (' . $stmt->errorCode() . ') ' . $stmt->errorInfo()[2];
             }
             if (!$stmt->execute()) {
-                echo 'Execute failed: (' . $stmt->errno . ') ' . $stmt->error;
+                echo 'Execute failed: (' . $stmt->errorCode() . ') ' . $stmt->errorInfo()[2];
             }
-            $stmt->bind_result($id, $hash, $type, $added, $is_deleted);
-            $video_not_found = true;
-            while ($stmt !== null && $stmt->fetch() && $video_not_found) {
-                if ($id !== null && file_exists('./files/' . $hash . '.' . $type)) {
-                    $video_not_found = false;
+
+            if ($video = $stmt->fetch(\PDO::FETCH_OBJ)) {
+                if ($stmt !== null && file_exists($config['storage_directory'] . $video->hash . '.' . $video->type)) {
                     ?>
                     <video class="main-vid" controls>
-                        <source src="/files/<?= $hash . '.' . $type ?>" type="video/<?= $type ?>">
-                        <p>Your browser does not support <?= $type ?>.</p>
+                        <source src="/files/<?= $video->hash . '.' . $video->type ?>" type="video/<?= $video->type ?>">
+                        <p>Your browser does not support <?= $video->type ?>.</p>
                     </video>
                     <?php
 
                 }
-            }
-            if ($video_not_found) {
+            } else {
                 ?>
                 <div class="text-center">
                     <h1>404</h1>
@@ -174,7 +169,7 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
         } else {
             ?>
             <div class="container well">
-                <input id="id" type="text" name="id" class="big-search" autocomplete="off"/>
+                <input title="Search" id="id" type="text" name="id" class="big-search" autocomplete="off"/>
                 <script type="text/javascript">
                     $('#id').keypress(function () {
                         if (event.which == 13) {
@@ -185,10 +180,9 @@ $mode_id = (isset($_REQUEST['id'])) ? $_REQUEST['id'] : '';
                 </script>
             </div>
             <?php
-
-        } ?>
+        }
+        ?>
     </div>
 </div>
 </body>
 </html>
-<?php $db->close(); ?>
