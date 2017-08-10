@@ -1,6 +1,6 @@
 <?php
 $config = [
-    'storage_directory' => __DIR__ . '/../resources/',
+    'storage_directory' => __DIR__ . '/files/',
     'max_size' => 5000000,
     'db_dsn' => 'mysql:host=localhost;dbname=vidox',
     'db_user' => 'root',
@@ -113,12 +113,12 @@ $mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
                     $stmt->bindParam(':type', $fType, \PDO::PARAM_STR);
                     $stmt->bindParam(':added', $dateNow, \PDO::PARAM_STR);
 
-                    if (!$stmt->execute()) {
-                        echo 'Execute failed: (' . $stmt->errorCode() . ') ' . $stmt->errorInfo();
+                    if ($stmt->execute()) {
+                        die('<span>Successfully uploaded video with ID `<a href="/' . $new_id . '">' . $new_id . '</a>`');
                     }
-                } else {
-                    die('Sorry, there was an error uploading your file.');
                 }
+
+                die('Sorry, there was an error uploading your file.');
             } else {
                 ?>
                 <form action="" method="POST" enctype="multipart/form-data">
@@ -148,7 +148,7 @@ $mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
                 echo 'Execute failed: (' . $stmt->errorCode() . ') ' . $stmt->errorInfo()[2];
             }
 
-            if ($video = $stmt->fetch()) {
+            if ($video = $stmt->fetch(\PDO::FETCH_OBJ)) {
                 if ($stmt !== null && file_exists($config['storage_directory'] . $video->hash . '.' . $video->type)) {
                     ?>
                     <video class="main-vid" controls>
