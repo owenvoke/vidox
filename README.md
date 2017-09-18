@@ -2,7 +2,7 @@
 
 A simple video hosting script using only 1 file.
 
-[![Build Status](https://travis-ci.org/PXgamer/vidox.svg?branch=master)](https://travis-ci.org/PXgamer/vidox)
+[![Build Status](https://travis-ci.org/pxgamer/vidox.svg?branch=master)](https://travis-ci.org/pxgamer/vidox)
 [![Version](https://img.shields.io/packagist/v/pxgamer/vidox.svg)](https://packagist.org/p/pxgamer/vidox)
 [![License](https://img.shields.io/packagist/l/pxgamer/vidox.svg)](https://opensource.org/licenses/mit-license)
 
