@@ -10,8 +10,10 @@ $config = [
 try {
     $db = new \PDO($config['db_dsn'], $config['db_user'], $config['db_pass']);
 } catch (PDOException $e) {
-    die('Connect Error (' . $e->getCode() . ') '
-        . $e->getMessage());
+    die(
+        'Connect Error (' . $e->getCode() . ') '
+        . $e->getMessage()
+    );
 }
 
 $mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
@@ -152,8 +154,8 @@ $mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
                 if ($stmt !== null && file_exists($config['storage_directory'] . $video->hash . '.' . $video->type)) {
                     ?>
                     <video class="main-vid" controls>
-                        <source src="/files/<?= $video->hash . '.' . $video->type ?>" type="video/<?= $video->type ?>">
-                        <p>Your browser does not support <?= $video->type ?>.</p>
+                        <source src="/files/<?php echo $video->hash . '.' . $video->type ?>" type="video/<?php echo $video->type ?>">
+                        <p>Your browser does not support <?php echo $video->type ?>.</p>
                     </video>
                     <?php
 
