@@ -158,7 +158,6 @@ $mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
                         <p>Your browser does not support <?php echo $video->type ?>.</p>
                     </video>
                     <?php
-
                 }
             } else {
                 ?>
