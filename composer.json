@@ -1,7 +1,7 @@
 {
     "name": "pxgamer/vidox",
     "type": "project",
-    "description": ":package_description",
+    "description": "A simple video hosting script using only 1 file.",
     "license": "MIT",
     "require": {
         "php": "^7.1"
@@ -12,12 +12,12 @@
     },
     "autoload": {
         "psr-4": {
-            "pxgamer\\:package_name\\": "src"
+            "pxgamer\\Vidox\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "pxgamer\\:package_name\\": "tests"
+            "pxgamer\\Vidox\\": "tests"
         }
     },
     "scripts": {
