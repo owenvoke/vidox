@@ -4,7 +4,8 @@ $config = [
     'max_size' => 5000000,
     'db_dsn' => 'mysql:host=localhost;dbname=vidox',
     'db_user' => 'root',
-    'db_pass' => 'root'
+    'db_pass' => 'root',
+    'allowed_file_types' => ['mp4', 'mkv']
 ];
 
 try {
@@ -101,8 +102,8 @@ $mode_id = str_replace('/', '', $_SERVER['REQUEST_URI']);
                     die('Sorry, your file is too large.');
                 }
 
-                if ($fType != 'mp4' && $fType != 'mkv') {
-                    die('Sorry, only MP4 and MKV files are allowed.');
+                if (! in_array($fType, $config['allowed_file_types'])) {
+                    die('Sorry, only ' . implode(', ', $config['allowed_file_types']) . ' files are allowed.');
                 }
                 if (move_uploaded_file($_FILES['upload']['tmp_name'], $target_file)) {
                     if (!($stmt = $db->prepare('INSERT INTO `videos` (`hash`, `type`, `added`) VALUES (:hash, :type, :added)'))) {
